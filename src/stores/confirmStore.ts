@@ -11,7 +11,11 @@ interface ConfirmState {
 
 export const useConfirmStore = create<ConfirmState>()((set, get) => ({
   request: null,
-  ask: (opts) => new Promise((resolve) => set({ request: { ...opts, resolve } })),
+  ask: (opts) =>
+    new Promise((resolve) => {
+      get().request?.resolve(false) // a new question replaces the old one; don't leave its caller waiting forever
+      set({ request: { ...opts, resolve } })
+    }),
   answer: (ok) => {
     get().request?.resolve(ok)
     set({ request: null })

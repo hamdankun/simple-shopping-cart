@@ -10,15 +10,17 @@ interface ProductsState {
   setQuery: (q: string) => void
 }
 
-export const useProductsStore = create<ProductsState>()((set) => ({
+export const useProductsStore = create<ProductsState>()((set, get) => ({
   items: [],
   status: 'idle',
   query: '',
   load: async (fetcher = fetchProducts) => {
+    if (get().status === 'loading') return // already on its way (e.g. React StrictMode runs effects twice in dev)
     set({ status: 'loading' })
     try {
       set({ items: await fetcher(), status: 'ready' })
-    } catch {
+    } catch (error) {
+      console.error('Could not load products', error)
       set({ status: 'error' })
     }
   },

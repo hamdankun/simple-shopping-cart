@@ -8,6 +8,7 @@ import { ProductGrid } from '../ProductGrid'
 const items = [
   { id: 1, name: 'Wireless Mouse', price: 29, imageSeed: 'seed' },
   { id: 2, name: 'Keyboard', price: 129, imageSeed: 'seed' },
+  { id: 3, name: 'Webcam', price: 79, imageSeed: 'seed' },
 ]
 
 // Replace the real (delayed) loader so each test controls the state it needs.
@@ -56,4 +57,11 @@ test('adding a product puts it in the cart', async () => {
   render(<ProductGrid />)
   await userEvent.click(screen.getAllByRole('button', { name: 'Add to cart' })[1])
   expect(useCartStore.getState().items).toEqual([{ product: items[1], quantity: 1 }])
+})
+
+test('only the first two pictures skip lazy loading', () => {
+  useProductsStore.setState({ status: 'ready', items })
+  const { container } = render(<ProductGrid />)
+  const loading = [...container.querySelectorAll('img')].map((img) => img.getAttribute('loading'))
+  expect(loading).toEqual(['eager', 'eager', 'lazy'])
 })

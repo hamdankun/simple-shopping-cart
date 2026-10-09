@@ -15,15 +15,16 @@ interface Props {
 }
 
 export function ProductImage({ product, width, height, sizes, priority = false, className }: Props) {
-  const [failed, setFailed] = useState(false)
+  const src = imageUrl(product.imageSeed, width, height)
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
 
   // The product name is always next to the picture, so the picture itself is decorative.
-  if (failed) return <div aria-hidden className={cn('bg-muted', className)} />
+  if (failedSrc === src) return <div aria-hidden className={cn('bg-muted', className)} />
 
   return (
     <img
-      src={imageUrl(product.imageSeed, width, height)}
-      srcSet={`${imageUrl(product.imageSeed, width, height)} ${width}w, ${imageUrl(product.imageSeed, width * 2, height * 2)} ${width * 2}w`}
+      src={src}
+      srcSet={`${src} ${width}w, ${imageUrl(product.imageSeed, width * 2, height * 2)} ${width * 2}w`}
       sizes={sizes ?? `${width}px`}
       width={width}
       height={height}
@@ -31,7 +32,7 @@ export function ProductImage({ product, width, height, sizes, priority = false, 
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : 'auto'}
       decoding="async"
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(src)}
       className={cn('bg-muted object-cover', className)}
     />
   )

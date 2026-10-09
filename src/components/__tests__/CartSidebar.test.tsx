@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test } from 'vitest'
 import { useCartStore } from '@/stores/cartStore'
 import { useConfirmStore } from '@/stores/confirmStore'
+import { useProductsStore } from '@/stores/productsStore'
 import { useUiStore } from '@/stores/uiStore'
 import { CartSidebar } from '../CartSidebar'
 import { ConfirmDialog } from '../ConfirmDialog'
@@ -14,6 +15,7 @@ beforeEach(() => {
   useCartStore.getState().clear()
   useConfirmStore.setState({ request: null })
   useUiStore.setState({ cartOpen: true })
+  useProductsStore.setState({ status: 'ready' })
 })
 
 function renderCart() {
@@ -73,5 +75,29 @@ test('checkout asks first, and cancelling keeps the cart', async () => {
 test('closing the panel updates the ui store', async () => {
   renderCart()
   await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(useUiStore.getState().cartOpen).toBe(false)
+})
+
+test('checkout is paused, with a note, until the latest prices are known', () => {
+  useProductsStore.setState({ status: 'loading' })
+  useCartStore.setState({ items: [{ product: mouse, quantity: 1 }] })
+  renderCart()
+  expect(screen.getByRole('button', { name: 'Checkout' })).toBeDisabled()
+  expect(screen.getByText('Checking the latest prices...')).toBeInTheDocument()
+})
+
+test('while an order is processing, the cart cannot be edited or closed', async () => {
+  useCartStore.setState({ items: [{ product: mouse, quantity: 2 }] })
+  renderCart()
+  await userEvent.click(screen.getByRole('button', { name: 'Checkout' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Place order' }))
+
+  expect(await screen.findByRole('button', { name: 'Processing...' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Increase quantity' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Remove Mouse' })).toBeDisabled()
+  await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(useUiStore.getState().cartOpen).toBe(true)
+
+  await waitFor(() => expect(useCartStore.getState().items).toHaveLength(0), { timeout: 3000 })
   expect(useUiStore.getState().cartOpen).toBe(false)
 })

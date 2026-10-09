@@ -16,10 +16,10 @@ export function CartSidebar() {
   const quantity = useCartStore(selectTotalQuantity)
   const total = useCartStore(selectTotalPrice)
   const removeWithConfirm = useRemoveWithConfirm()
-  const { checkout, isProcessing, disabled } = useCheckout()
+  const { checkout, isProcessing, pricesChecked, disabled } = useCheckout()
 
   return (
-    <Sheet open={open} onOpenChange={(next) => (next ? openCart() : closeCart())}>
+    <Sheet open={open} onOpenChange={(next) => (next ? openCart() : !isProcessing && closeCart())}>
       <SheetContent className="data-[side=right]:w-full data-[side=right]:sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Your cart <span className="text-sm font-normal text-muted-foreground">{formatItems(quantity)}</span></SheetTitle>
@@ -35,6 +35,7 @@ export function CartSidebar() {
                 item={item}
                 onQuantity={(q) => setQuantity(item.product.id, q)}
                 onRemove={() => removeWithConfirm(item.product)}
+                disabled={isProcessing}
               />
             ))}
           </ul>
@@ -42,6 +43,9 @@ export function CartSidebar() {
 
         <SheetFooter>
           <p className="text-center text-2xl font-bold">Total: {formatPrice(total)}</p>
+          {!pricesChecked && items.length > 0 && (
+            <p className="text-center text-xs text-muted-foreground">Checking the latest prices...</p>
+          )}
           <Button size="lg" disabled={disabled} onClick={checkout}>
             {isProcessing ? 'Processing...' : 'Checkout'}
           </Button>

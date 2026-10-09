@@ -18,19 +18,19 @@ A real backend or payment, login, routing, syncing the cart across devices, mult
 
 | # | Feature | What "done" looks like |
 |---|---------|------------------------|
-| 1 | Confirm dialogs | Clicking Checkout asks "are you sure?" and shows the item count and total. Removing an item asks the same, naming the product. Cancel, Esc, or clicking outside closes the dialog and changes nothing. No more browser `alert()`. Checkout is disabled when the cart is empty. |
-| 2 | Add-to-cart notification | Every add shows a short toast ("Added to cart: …") that goes away by itself. Toasts stack if you add quickly. |
+| 1 | Confirm dialogs | Clicking Checkout asks "are you sure?" and shows the item count and total. Removing an item asks the same, naming the product. Cancel, Esc, or clicking outside closes the dialog and changes nothing. No more browser `alert()`. Checkout is disabled when the cart is empty, and until the latest prices are loaded (a saved cart could hold old ones). While an order is processing, the cart can't be edited or closed. |
+| 2 | Add-to-cart notification | Every add shows a short toast ("Added to cart: …") that goes away by itself. Toasts stack if you add quickly. At the 99 limit nothing is added, and the toast says so instead. |
 | 3 | Total quantity | The cart badge in the header and the cart panel both show the total number of items, counting every unit (2 headphones + 1 watch = 3). |
-| 4 | Search box | Type to filter products by name, ignoring case. The filter waits a moment after typing stops. If nothing matches, show "No products found". A clear button resets it. |
+| 4 | Search box | Type to filter products by name, ignoring case. The filter waits a moment after typing stops. If nothing matches, show "No products found". A clear button resets it right away and keeps the cursor in the box. |
 | 5 | Quantity updates | See below. |
-| 6 | Cart survives a refresh | The cart is saved in the browser's `localStorage`, so reloading the page or coming back later shows the same items. Only the cart is saved. Products, search text, and open dialogs are not. When the products load, the saved cart is refreshed against them, so names and prices are current and products that no longer exist are dropped. |
-| 7 | Product images | Each product shows a picture, on its card and in the cart. Pictures are optimized: the right size for the screen (with a sharper version for high-density displays), WebP format, lazy loading below the fold, reserved space so the page doesn't jump while they load, and a plain placeholder if one fails to load. |
+| 6 | Cart survives a refresh | The cart is saved in the browser's `localStorage`, so reloading the page or coming back later shows the same items. Damaged or hand-edited saved data can't break the page: bad lines are fixed or dropped. Only the cart is saved. Products, search text, and open dialogs are not. When the products load, the saved cart is refreshed against them, so names and prices are current and products that no longer exist are dropped, with a note telling the user. |
+| 7 | Product images | Each product shows a picture, on its card and in the cart. Pictures are optimized: the right size for the screen (with a sharper version for high-density displays), WebP format, lazy loading for everything except the first two pictures, reserved space so the page doesn't jump while they load, and a plain placeholder if one fails to load. |
 
 ### About feature 5
 The brief says "quantity couldn't update by multiples", which isn't very specific. We found a real bug and also filled a gap:
 
 1. **The bug.** In the original, pressing `+` or `−` redraws the cart, and the "click outside to close" handler then thinks you clicked outside, so the cart closes after every click. You can't change a quantity more than once. Now the cart only closes when you click the dark backdrop or the close button.
-2. **The gap.** Quantity could only move by 1. Each cart row now has a number field, so you can type any amount from 1 to 99, plus `+5` and `+10` buttons for bigger jumps. Typing 0 asks to remove the item, and typing something invalid puts the old number back.
+2. **The gap.** Quantity could only move by 1. Each cart row now has a number field, so you can type any amount from 1 to 99, plus `+5` and `+10` buttons for bigger jumps. The number saves as you type (arrow keys and the spinner work too). Typing 0 asks to remove the item; empty, negative or other unusable text puts the old number back. At 99 the buttons that add more are turned off.
 
 The brief doesn't say which kind of "multiples" it means, so the cart row covers both: type any amount, or jump by 5 or 10.
 

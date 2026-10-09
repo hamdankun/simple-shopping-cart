@@ -12,8 +12,8 @@ Nothing here is real: the products are made-up, checkout is pretend, and there's
 - Open the cart from the top right. It slides in from the side.
 - See how many items you have in total, both on the cart button and inside the cart.
 - Change a quantity with the `−` and `+` buttons, or just type a number from 1 to 99.
-- Get asked "are you sure?" before removing something or checking out.
-- Refresh the page and find your cart still there, since it's saved in your browser.
+- Get asked "are you sure?" before removing something or checking out. While an order is going through, the cart is locked so nothing changes under it.
+- Refresh the page and find your cart still there, since it's saved in your browser. If that saved data is ever damaged, the page still loads.
 - See a picture for every product, loaded in a way that keeps the page fast.
 - Use it on a phone or a big screen. The layout adjusts.
 

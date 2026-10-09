@@ -32,3 +32,13 @@ test('no clear button while the field is empty', () => {
   render(<SearchBox />)
   expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument()
 })
+
+test('clearing is immediate and puts the cursor back in the field', async () => {
+  render(<SearchBox />)
+  const input = screen.getByLabelText('Search products')
+  await userEvent.type(input, 'mouse')
+  await waitFor(() => expect(useProductsStore.getState().query).toBe('mouse'))
+  await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+  expect(useProductsStore.getState().query).toBe('') // checked right away, not after the delay
+  expect(input).toHaveFocus()
+})

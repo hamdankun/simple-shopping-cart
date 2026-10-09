@@ -42,3 +42,11 @@ test('swaps to a plain placeholder when the image fails to load', () => {
   expect(container.firstElementChild).toHaveClass('size-14')
   expect(screen.queryByRole('img')).not.toBeInTheDocument()
 })
+
+test('a new picture gets a fresh try after an earlier one failed', () => {
+  const { container, rerender } = render(<ProductImage product={product} width={56} height={56} />)
+  fireEvent.error(getImage(container))
+  expect(container.querySelector('img')).toBeNull()
+  rerender(<ProductImage product={{ ...product, imageSeed: 'keyboard' }} width={56} height={56} />)
+  expect(getImage(container)).toHaveAttribute('src', 'https://picsum.photos/seed/keyboard/56/56.webp')
+})

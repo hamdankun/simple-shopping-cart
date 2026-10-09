@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { useCartStore } from '@/stores/cartStore'
 import { useConfirmStore } from '@/stores/confirmStore'
+import { useProductsStore } from '@/stores/productsStore'
 import { useUiStore } from '@/stores/uiStore'
 import { useCheckout } from '../useCheckout'
 
@@ -16,6 +17,7 @@ beforeEach(() => {
   useCartStore.setState({ items: [{ product: mouse, quantity: 2 }] })
   useConfirmStore.setState({ request: null })
   useUiStore.setState({ cartOpen: true })
+  useProductsStore.setState({ status: 'ready' })
 })
 afterEach(() => vi.useRealTimers())
 
@@ -23,6 +25,15 @@ test('is disabled when the cart is empty', () => {
   useCartStore.setState({ items: [] })
   const { result } = renderHook(() => useCheckout())
   expect(result.current.disabled).toBe(true)
+})
+
+test('is disabled, and asks nothing, until the prices have been checked against the loaded products', () => {
+  useProductsStore.setState({ status: 'loading' })
+  const { result } = renderHook(() => useCheckout())
+  expect(result.current.disabled).toBe(true)
+  expect(result.current.pricesChecked).toBe(false)
+  act(() => { void result.current.checkout() })
+  expect(useConfirmStore.getState().request).toBeNull()
 })
 
 test('asks with the item count and total before doing anything', () => {

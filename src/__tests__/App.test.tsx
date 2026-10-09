@@ -1,18 +1,32 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, expect, test, vi } from 'vitest'
 import { App } from '../App'
 import { useCartStore } from '../stores/cartStore'
+import { useConfirmStore } from '../stores/confirmStore'
 import { useProductsStore } from '../stores/productsStore'
+import { useUiStore } from '../stores/uiStore'
+
+// A small catalog that arrives instantly, so these tests don't wait on the real 800ms fake delay.
+vi.mock('@/api/products', () => ({
+  fetchProducts: async () => [
+    { id: 1, name: 'Wireless Headphones', price: 99, imageSeed: 'headphones' },
+    { id: 2, name: 'Smart Watch', price: 299, imageSeed: 'watch' },
+    { id: 4, name: 'Wireless Mouse', price: 29, imageSeed: 'mouse' },
+  ],
+}))
 
 beforeEach(() => {
-  useCartStore.getState().clear()
+  localStorage.clear()
+  useCartStore.setState({ items: [] })
   useProductsStore.setState({ items: [], status: 'idle', query: '' })
+  useUiStore.setState({ cartOpen: false })
+  useConfirmStore.setState({ request: null })
 })
 
 async function renderLoadedApp() {
   render(<App />)
-  await screen.findByText('Wireless Mouse', {}, { timeout: 3000 })
+  await screen.findByText('Wireless Mouse')
 }
 
 test('adding products updates the cart count with every unit', async () => {
@@ -36,7 +50,19 @@ test('search filters the products and shows an empty state', async () => {
 })
 
 test('a saved cart is refreshed with the current catalog prices', async () => {
-  useCartStore.setState({ items: [{ product: { id: 4, name: 'Old name', price: 1, imageSeed: 'seed' }, quantity: 2 }] })
+  useCartStore.setState({ items: [{ product: { id: 4, name: 'Old name', price: 1, imageSeed: 'x' }, quantity: 2 }] })
   await renderLoadedApp()
   await waitFor(() => expect(useCartStore.getState().items[0].product.price).toBe(29))
+  expect(useCartStore.getState().items[0].product.name).toBe('Wireless Mouse')
+})
+
+test('checkout works start to finish once the catalog is loaded', async () => {
+  const user = userEvent.setup()
+  await renderLoadedApp()
+  await user.click(screen.getAllByRole('button', { name: 'Add to cart' })[0])
+  await user.click(screen.getByRole('button', { name: /^Cart/ }))
+  await user.click(screen.getByRole('button', { name: 'Checkout' }))
+  expect(await screen.findByText('1 item, total $99.')).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Place order' }))
+  await waitFor(() => expect(useCartStore.getState().items).toHaveLength(0), { timeout: 3000 })
 })

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,16 +15,20 @@ export function ConfirmDialog() {
   const request = useConfirmStore((s) => s.request)
   const answer = useConfirmStore((s) => s.answer)
 
+  // Keep showing the last question while the dialog fades out, so the text doesn't blank mid-animation.
+  const [shown, setShown] = useState(request)
+  if (request && request !== shown) setShown(request)
+
   return (
     <AlertDialog open={request !== null} onOpenChange={(open) => !open && answer(false)}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{request?.title}</AlertDialogTitle>
-          <AlertDialogDescription>{request?.message}</AlertDialogDescription>
+          <AlertDialogTitle>{shown?.title}</AlertDialogTitle>
+          <AlertDialogDescription>{shown?.message}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => answer(true)}>{request?.confirmLabel ?? 'Confirm'}</AlertDialogAction>
+          <AlertDialogAction onClick={() => answer(true)}>{shown?.confirmLabel ?? 'Confirm'}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

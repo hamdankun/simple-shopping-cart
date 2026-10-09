@@ -14,13 +14,15 @@ tw-assessments/
 │   ├── lib/
 │   │   ├── format.ts          # formatPrice, formatItems
 │   │   ├── image.ts           # imageUrl (Picsum, WebP, any size)
-│   │   └── utils.ts           # shadcn's cn() helper
+│   │   ├── limits.ts          # MAX_QTY (99), shared by the cart store and the quantity row
+│   │   ├── utils.ts           # shadcn's cn() helper
+│   │   └── __tests__/         # format tests
 │   ├── stores/
 │   │   ├── productsStore.ts   # list, status, search text, filtered selector
 │   │   ├── cartStore.ts       # cart lines, totals, saved to localStorage
 │   │   ├── uiStore.ts         # cart open/closed
 │   │   ├── confirmStore.ts    # pending confirmation
-│   │   └── __tests__/         # cart and products store tests
+│   │   └── __tests__/         # a test file per store
 │   ├── hooks/
 │   │   ├── useAddToCart.ts
 │   │   ├── useRemoveWithConfirm.ts
